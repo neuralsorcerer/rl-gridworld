@@ -33,7 +33,7 @@ git clone https://github.com/neuralsorcerer/rl-gridworld.git
 cd rl-gridworld
 ```
 
-### Create and Activate a Virtual Environment (Optional but recommended):
+### Create and Activate a Virtual Environment (Optional but recommended)
 
 ```bash
 python3 -m venv venv
