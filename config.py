@@ -10,6 +10,7 @@ class Config:
     INITIAL_OBSTACLES = [
         (1, 1), (2, 2), (3, 4), (6, 1), (6, 2), (7, 0), (7, 2), (7, 3), (7, 6), (7, 8)
     ]
+    # Set to True to randomly move obstacles after each agent step
     DYNAMIC_OBSTACLES = False
     MAX_STEPS_PER_EPISODE = 50
 

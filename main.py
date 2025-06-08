@@ -6,6 +6,8 @@ from utils import train_agent, plot_rewards, plot_losses, plot_epsilons, get_opt
 from logger import logger
 import sys
 import os
+import numpy as np
+import random
 
 def parse_goal(goal_str):
     try:
@@ -16,6 +18,16 @@ def parse_goal(goal_str):
         return (x, y), reward
     except ValueError:
         raise argparse.ArgumentTypeError("Goals must be in the format 'x y reward' with integer values.")
+
+def parse_obstacle(obstacle_str):
+    try:
+        parts = obstacle_str.split()
+        if len(parts) != 2:
+            raise ValueError
+        x, y = map(int, parts)
+        return (x, y)
+    except ValueError:
+        raise argparse.ArgumentTypeError("Obstacles must be in the format 'x y' with integer values.")
 
 def validate_positions(start, goals, grid_size, obstacles):
     rows, cols = grid_size
@@ -28,6 +40,13 @@ def validate_positions(start, goals, grid_size, obstacles):
             raise ValueError(f"Goal position {pos} is out of grid boundaries.")
         if pos in obstacles:
             raise ValueError(f"Goal position {pos} overlaps with an obstacle.")
+    for obs in obstacles:
+        if not (0 <= obs[0] < rows) or not (0 <= obs[1] < cols):
+            raise ValueError(f"Obstacle position {obs} is out of grid boundaries.")
+        if obs == start:
+            raise ValueError(f"Obstacle position {obs} overlaps with the start position.")
+        if obs in goals:
+            raise ValueError(f"Obstacle position {obs} overlaps with a goal.")
 
 def main():
     parser = argparse.ArgumentParser(description='Train DQN on GridWorld.')
@@ -39,22 +58,39 @@ def main():
     parser.add_argument('--start_x', type=int, default=Config.DEFAULT_START_POS[0])
     parser.add_argument('--start_y', type=int, default=Config.DEFAULT_START_POS[1])
     parser.add_argument('--goal', type=parse_goal, action='append')
+    parser.add_argument('--obstacle', type=parse_obstacle, action='append')
+    parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
     parser.add_argument('--save_animation', action='store_true')
     parser.add_argument('--animation_filename', type=str, default='path_animation.gif')
+    parser.add_argument(
+        '--dynamic_obstacles',
+        action='store_true',
+        default=Config.DYNAMIC_OBSTACLES,
+        help='Enable moving obstacles during training'
+    )
 
     args = parser.parse_args()
+
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        random.seed(args.seed)
 
     if not args.goal:
         goals = Config.DEFAULT_GOALS.copy()
     else:
         goals = {position: reward for position, reward in args.goal}
 
+    if args.obstacle:
+        obstacles = args.obstacle
+    else:
+        obstacles = Config.INITIAL_OBSTACLES
+
     env = GridWorld(
         size=(args.rows, args.cols),
         start=(args.start_x, args.start_y),
         goals=goals,
-        obstacles=Config.INITIAL_OBSTACLES,
-        dynamic_obstacles=Config.DYNAMIC_OBSTACLES,
+        obstacles=obstacles,
+        dynamic_obstacles=args.dynamic_obstacles,
         max_steps=args.max_steps
     )
 

@@ -1,11 +1,13 @@
 from config import Config
+import random
 
 class GridWorld:
     def __init__(self, size, start, goals, obstacles, dynamic_obstacles, max_steps):
         self.size = size  # (rows, cols)
         self.start = start
         self.goals = goals
-        self.obstacles = obstacles
+        self.initial_obstacles = list(obstacles)
+        self.obstacles = list(obstacles)
         self.dynamic_obstacles = dynamic_obstacles
         self.max_steps = max_steps
         self.current_pos = self.start
@@ -16,6 +18,7 @@ class GridWorld:
         self.current_pos = self.start
         self.step_count = 0
         self.previous_positions = set([self.start])
+        self.obstacles = list(self.initial_obstacles)
         return self.get_state(self.current_pos)
 
     def get_position(self, idx):
@@ -29,6 +32,34 @@ class GridWorld:
 
     def manhattan_distance(self, pos1, pos2):
         return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+
+    def update_dynamic_obstacles(self):
+        """Move obstacles to neighboring cells to simulate a dynamic environment."""
+        if not self.dynamic_obstacles:
+            return
+
+        new_obstacles = []
+        taken = {self.current_pos, self.start, *self.goals.keys()}
+        for obs in self.obstacles:
+            possible = [
+                (obs[0] - 1, obs[1]),
+                (obs[0] + 1, obs[1]),
+                (obs[0], obs[1] - 1),
+                (obs[0], obs[1] + 1),
+            ]
+            valid = [p for p in possible
+                     if 0 <= p[0] < self.size[0]
+                     and 0 <= p[1] < self.size[1]
+                     and p not in self.obstacles
+                     and p not in taken
+                     and p not in new_obstacles]
+            if valid:
+                new_pos = random.choice(valid)
+            else:
+                new_pos = obs
+            new_obstacles.append(new_pos)
+            taken.add(new_pos)
+        self.obstacles = new_obstacles
 
     def step(self, action):
         x, y = self.current_pos
@@ -73,9 +104,11 @@ class GridWorld:
         self.current_pos = new_pos
         self.step_count += 1
 
-        # Check max steps
         if self.step_count >= self.max_steps:
             done = True
+
+        if not done:
+            self.update_dynamic_obstacles()
 
         return self.get_state(new_pos), reward, done
 

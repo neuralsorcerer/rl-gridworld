@@ -20,6 +20,7 @@ class TestGridWorld(unittest.TestCase):
         self.assertEqual(state, self.env.get_state((0, 0)))
         self.assertEqual(self.env.current_pos, (0, 0))
         self.assertEqual(self.env.step_count, 0)
+        self.assertEqual(self.env.obstacles, Config.INITIAL_OBSTACLES)
 
     def test_step_up(self):
         self.env.reset()
@@ -89,6 +90,26 @@ class TestGridWorld(unittest.TestCase):
             if done:
                 break
         self.assertTrue(done)
+
+    def test_dynamic_obstacles_move(self):
+        env = GridWorld(
+            size=(5, 5),
+            start=(0, 0),
+            goals={(4, 4): 10},
+            obstacles=[(2, 2)],
+            dynamic_obstacles=True,
+            max_steps=10,
+        )
+        env.reset()
+        random.seed(0)
+        initial_obstacles = env.obstacles.copy()
+        env.step(1)
+        self.assertNotEqual(env.obstacles, initial_obstacles)
+        for obs in env.obstacles:
+            self.assertTrue(0 <= obs[0] < env.size[0] and 0 <= obs[1] < env.size[1])
+            self.assertNotEqual(obs, env.start)
+            self.assertNotIn(obs, env.goals)
+            self.assertNotEqual(obs, env.current_pos)
 
 if __name__ == "__main__":
     unittest.main()

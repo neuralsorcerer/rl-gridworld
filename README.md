@@ -20,11 +20,13 @@ By training a DQN, the agent uses a neural network to approximate the Q-value fu
 
 - **Early Stopping & Model Saving:** The model stops training early if performance thresholds are met. The best model is periodically saved to `best_dqn_model.pkl`.
 
+- **Dynamic Obstacles (optional):** Enable moving obstacles to create a more challenging environment during training and evaluation.
+
 - **Logging and Visualization:** View real-time training progress with logging. After training, you can plot rewards, losses, and epsilon decay curves, and visualize the agent’s optimal path on the grid.
 
 ## Installation
 
-### Clone the Repository:
+### Clone the Repository
 
 ```bash
 git clone https://github.com/neuralsorcerer/rl-gridworld.git
@@ -38,7 +40,7 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Install Dependencies:
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -73,6 +75,9 @@ python main.py   --episodes 5000   --rows 8   --cols 10   --start_x 0   --start_
 - `--rows` and `--cols` set the grid size.
 - `--start_x` and `--start_y` set the agent's start position.
 - `--goal "x y reward"` can be repeated multiple times to add multiple goals.
+- `--obstacle "x y"` can be repeated to place additional obstacles.
+- `--dynamic_obstacles` enables moving obstacles for a harder task.
+- `--seed` sets the random seed for reproducible runs.
 - `--save_animation` and `--animation_filename` create a GIF of the agent's optimal path after training.
 
 ### After Training
@@ -102,22 +107,22 @@ Changing these values affects convergence speed and policy quality.
 Run the test suite to verify the correctness of agents, environment, and neural network:
 
 ```bash
-python -m unittest discover tests
+pytest -q
 ```
 
 If all tests pass, the environment and agent are functioning as intended.
 
 ## Troubleshooting and Tips
 
-### Agent Gets Stuck or Produces Non-Optimal Path:
+### Agent Gets Stuck or Produces Non-Optimal Path
 
 Try removing `best_dqn_model.pkl` before training with new goals or configurations. This ensures training starts fresh.
 
-### Not Reaching the Goal:
+### Not Reaching the Goal
 
 Check if the environment is solvable. If solvable, consider adjusting reward structures, training duration, or exploration parameters.
 
-### Performance & Convergence Issues:
+### Performance & Convergence Issues
 
 Experiment with hyperparameters (e.g., learning rate, exploration decay) or try a different neural network architecture.
 
